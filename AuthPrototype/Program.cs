@@ -1,31 +1,29 @@
-using System.Collections.Generic;
-using System.Linq;
+using AuthPrototype.Services;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace AuthPrototype;
 
 public class Program {
-    private static readonly UsersFileStore _userStore = new("users.txt");
-
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddSingleton(new UsersFileStore("users.txt"));
+        builder.Services.AddHttpClient<TokenService>();
+        builder.Services.AddControllers();
         var app = builder.Build();
 
-        app.MapGet("/", () => "Hello World!");
-        app.MapPost("/authenticate", AuthenticateUser);
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+
+        app.UseHttpsRedirection();
+        app.UseAuthorization();
+        app.MapControllers();
+
+        app.MapGet("/", () => $"AuthPrototype in {app.Environment.EnvironmentName} mode");
 
         app.Run();
-    }
-
-    private static IResult AuthenticateUser([FromBody] User user) {
-        List<User> users = _userStore.GetAllUsers();
-        User? existingUser = users.FirstOrDefault(u => u.Email == user.Email && u.Provider == user.Provider);
-
-        if (existingUser is not null) return Results.Ok(existingUser);
-
-        _userStore.AddUser(user);
-        return Results.Ok(user);
     }
 }
