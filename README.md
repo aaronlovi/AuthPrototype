@@ -114,3 +114,13 @@ The reason you met get this error is because it is a requirement of the `google_
 - Otherwise, use the `sdkmanager` command: ```sdkmanager "ndk;<required-ndk-version>"```
   Replace `<required-ndk-version>` with the version specified in the error message.
 
+---
+
+## License
+
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+
+You are free to use, modify, and distribute this software under the terms of the AGPL. See the [LICENSE](LICENSE) file for details.
+
+For more information about the AGPL, visit [https://www.gnu.org/licenses/agpl-3.0.html](https://www.gnu.org/licenses/agpl-3.0.html).
+
