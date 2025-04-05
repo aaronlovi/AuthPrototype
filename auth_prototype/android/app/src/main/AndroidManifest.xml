@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="auth_prototype"
         android:name="${applicationName}"
@@ -30,6 +31,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- OAuth Client ID -->
+        <meta-data
+            android:name="com.google.android.gms.auth.api.signin.v2.com.googleusercontent.apps.d8na0fd5j1vompissjjvcot4dassd545-743471429467"
+            android:value="com.googleusercontent.apps.743471429467-d8na0fd5j1vompissjjvcot4dassd545.apps.googleusercontent.com" />
+        <meta-data
+            android:name="com.google.android.gms.auth.api.signin.v2.com.googleusercontent.apps.743471429467-d8na0fd5j1vompissjjvcot4dassd545"
+            android:value="743471429467-d8na0fd5j1vompissjjvcot4dassd545.apps.googleusercontent.com" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
