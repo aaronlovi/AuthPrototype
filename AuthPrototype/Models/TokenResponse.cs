@@ -1,4 +1,5 @@
-﻿namespace AuthPrototype.Models;
+﻿using System;
 
-public record TokenResponse(string AccessToken, string RefreshToken);
+namespace AuthPrototype.Models;
 
+public record TokenResponse(string AccessToken, string RefreshToken, int ExpiresIn);

@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>disable</ImplicitUsings>
-        <NoWarn>IDE0290</NoWarn>
-    </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<NoWarn>IDE0290</NoWarn>
+		<UserSecretsId>b4bc12c6-68ae-4697-bcf7-2c1be46ede0c</UserSecretsId>
+	</PropertyGroup>
 
-    
-    <!--
+	<!--
         IDE0290: Use primary constructor
     -->
 </Project>

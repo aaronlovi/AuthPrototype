@@ -26,36 +26,36 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken) || string.IsNullOrEmpty(request.RefreshToken))
             return BadRequest("Invalid request");
 
-        var isValidToken = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
-        if (!isValidToken)
+        var (isValidToken, expirationDateTime) = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
+        if (!isValidToken || expirationDateTime == null)
             return Unauthorized("Invalid access token");
 
-        var user = new User(Guid.NewGuid().ToString(), request.Name, request.Email, "Google", request.AccessToken, request.RefreshToken);
+        var user = new User(Guid.NewGuid().ToString(), request.Name, request.Email, "Google", request.AccessToken, request.RefreshToken, expirationDateTime.Value);
         _userStore.AddUser(user);
 
-        return Ok("User authenticated and tokens stored");
+        return Ok(new { request.AccessToken, request.RefreshToken, ExpirationDateTime = expirationDateTime.Value.ToString("o") });
     }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken([FromBody] TokenRefreshRequest request)
     {
-        // Validate the request
-        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.RefreshToken))
+        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken) || string.IsNullOrEmpty(request.RefreshToken))
             return BadRequest("Invalid request");
 
-        // Find the user by email
         var users = _userStore.GetAllUsers();
         var user = users.FirstOrDefault(u => u.Email == request.Email);
 
-        if (user is null || user.RefreshToken != request.RefreshToken)
-            return Unauthorized("Invalid refresh token");
+        if (user is null)
+            return Unauthorized("User not found");
 
-        var (newAccessToken, newRefreshToken) = await _tokenService.RefreshTokenAsync(request.RefreshToken);
+        var (isValidToken, expirationDateTime) = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
+        if (!isValidToken || expirationDateTime is null || expirationDateTime <= DateTime.UtcNow)
+            return Unauthorized("Access token expired");
 
-        // Update the user with new tokens
-        var updatedUser = user with { AccessToken = newAccessToken, RefreshToken = newRefreshToken };
+        // Update the user with new tokens and expiration date/time
+        var updatedUser = user with { AccessToken = request.AccessToken, RefreshToken = request.RefreshToken, ExpirationDateTime = expirationDateTime.Value };
         _userStore.AddUser(updatedUser);
 
-        return Ok("Tokens refreshed");
+        return Ok(new { user.AccessToken, user.RefreshToken, ExpirationDateTime = expirationDateTime.Value.ToString("o") });
     }
 }

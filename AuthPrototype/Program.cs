@@ -1,5 +1,6 @@
 using AuthPrototype.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -11,6 +12,7 @@ public class Program {
         builder.Services.AddSingleton(new UsersFileStore("users.txt"));
         builder.Services.AddHttpClient<TokenService>();
         builder.Services.AddControllers();
+        builder.Configuration.AddUserSecrets<Program>();
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
