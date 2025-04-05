@@ -8,6 +8,11 @@
 		<UserSecretsId>b4bc12c6-68ae-4697-bcf7-2c1be46ede0c</UserSecretsId>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+	</ItemGroup>
+
 	<!--
         IDE0290: Use primary constructor
     -->
