@@ -118,9 +118,8 @@ The reason you met get this error is because it is a requirement of the `google_
 
 ## License
 
-This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+This project is licensed under a **custom proprietary license**.
 
-You are free to use, modify, and distribute this software under the terms of the AGPL. See the [LICENSE](LICENSE) file for details.
+Permission is granted to view and use this software solely for evaluation purposes, as defined in the [LICENSE](LICENSE) file. Evaluation is limited to a period of 10 days from the date the software is first accessed. Any other use of this software is strictly prohibited without prior written consent from the author.
 
-For more information about the AGPL, visit [https://www.gnu.org/licenses/agpl-3.0.html](https://www.gnu.org/licenses/agpl-3.0.html).
-
+For more details, see the [LICENSE](LICENSE) file.
