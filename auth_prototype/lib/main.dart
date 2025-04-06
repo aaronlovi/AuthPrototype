@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:auth_prototype/services/auth_monitor_service.dart';
 import 'package:auth_prototype/services/auth_service.dart';
 import 'package:auth_prototype/utils/development_http_overrides.dart';
 import 'package:auth_prototype/views/google_sign_in_demo_widget.dart';
@@ -14,6 +15,7 @@ void main() {
   }
 
   GetIt.I.registerSingleton<AuthService>(AuthService());
+  GetIt.I.registerSingleton<AuthMonitorService>(AuthMonitorService());
 
   runApp(MyApp());
 }
