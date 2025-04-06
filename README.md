@@ -1,18 +1,24 @@
 # AuthPrototype
 
-This project demonstrates Google Sign-In integration in a Flutter application. It allows users to authenticate using their Google accounts and retrieve basic profile information such as name, email, and profile picture.
+This project demonstrates Google Sign-In integration in a Flutter application. It allows users to authenticate using their Google accounts and retrieve basic profile information such as name, email, and profile picture. The app also integrates with a C# backend for token validation and session management.
 
 ## Features
+
 - Google Sign-In authentication
 - Display user profile information
 - Sign-out functionality
 - Force token refresh functionality
+- Backend integration for:
+  - Token validation
+  - Session management
+  - Sign-out synchronization
 
 ---
 
 ## Prerequisites
 
 Before running this project, ensure you have the following:
+
 1. Flutter installed on your system.
 2. An Android emulator or physical device with Google Play Services.
 3. A Google Cloud Console project configured for Google Sign-In.
@@ -34,39 +40,55 @@ Before running this project, ensure you have the following:
 
 3. **Add the SHA-1 Fingerprint**:
    - Generate the SHA-1 fingerprint for your keystore:
+
      ```bash
      keytool -list -v -keystore %USERPROFILE%\.android\debug.keystore -alias androiddebugkey -storepass android -keypass android
      ```
+
    - Copy the SHA-1 fingerprint and add it to the OAuth 2.0 Client ID configuration.
+
+---
+
+## Backend Functionality
+
+The backend is implemented in C# using ASP.NET Core. It provides endpoints for authentication, re-authentication, and signing-out.
+
+_Configure your Flutter application to reach the backend in Constants.backendEndpoint. Note: This constant should not include localhost since your Android app will consider localhost to be within the Android emulator. Instead, get your machine's IP address._
 
 ---
 
 ## Matching App Configuration with Google Cloud Console
 
 ### 1. **Package Name**
-   - The `applicationId` in `android/app/build.gradle.kts` must match the package name in the Google Cloud Console:
-     ```kotlin
-     defaultConfig {
-         applicationId = "com.example.auth_prototype"
-     }
-     ```
+
+- The `applicationId` in `android/app/build.gradle.kts` must match the package name in the Google Cloud Console:
+
+   ```bash
+   defaultConfig {
+      applicationId = "com.example.auth_prototype"
+   }
+   ```
 
 ### 2. **SHA-1 Fingerprint**
-   - The SHA-1 fingerprint of your signing certificate (debug or release) must be added to the Google Cloud Console.
+
+- The SHA-1 fingerprint of your signing certificate (debug or release) must be added to the Google Cloud Console.
 
 ### 3. **OAuth Client ID**
-   - The `meta-data` tag in `AndroidManifest.xml` must match the OAuth Client ID from the Google Cloud Console:
-     ```xml
-     <meta-data
-         android:name="com.google.android.gms.auth.api.signin.v2.com.googleusercontent.apps.<reversed-client-id>"
-         android:value="<client-id>.apps.googleusercontent.com" />
-     ```
+
+- The `meta-data` tag in `AndroidManifest.xml` must match the OAuth Client ID from the Google Cloud Console:
+
+   ```xml
+   <meta-data
+      android:name="com.google.android.gms.auth.api.signin.v2.com.googleusercontent.apps.<reversed-client-id>"
+      android:value="<client-id>.apps.googleusercontent.com" />
+   ```
 
 ---
 
 ## Running the Project
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd AuthPrototype
@@ -87,6 +109,11 @@ Before running this project, ensure you have the following:
 - Ensure the **package name** and **SHA-1 fingerprint** in the Google Cloud Console match your app's configuration.
 - This is an indication that your project setup does not match the configuration in the Google Cloud Console
 
+### Error: `Connection refused`
+
+- Ensure the backend is running and accessible at https://[_your machine's IP address_]:7137
+- Ensure that Flutter is _not_ configured to reach the backend on _localhost_
+
 ### Debugging Tips
 
 - Check the logs for detailed error messages.
@@ -94,22 +121,22 @@ Before running this project, ensure you have the following:
 
 ### Error: NDK Version Mismatch
 
-If you encounter an error like: Your project is configured with Android NDK <version>, but the following plugin(s) depend on a different Android NDK version.
+If you encounter an error like: Your project is configured with Android NDK `version`, but the following plugin(s) depend on a different Android NDK version.
 
 The reason you met get this error is because it is a requirement of the `google_sign_in` library.
 
-#### How to Fix:
+#### How to Fix
 
 1. Open the `android\app\build.gradle.kts` file.
-2. Local the `ndkversion` property in the `android` block: android { ... ndkVersion = "<required-ndk-version>" }
+2. Local the `ndkversion` property in the `android` block: android { ... ndkVersion = "`required-ndk-version`" }
 3. Update the ndkVersion to match the version installed on your system, or install the required version (_yes_ this means hard-coding the NDK version number!)
 
-#### To Check the Installed NDK Versions:
+#### To Check the Installed NDK Versions
 
 - Navigate to the NDK directory: C:\Users\<YourUsername>\AppData\Local\Android\Sdk\ndk
 - The directory listing is the list of installed versions
 
-#### To Install a Specific NDK Version:
+#### To Install a Specific NDK Version
 
 - Easiest is to use Android Studio SDK Manager. The NDK versions are under the SDK Tools tab
 - Otherwise, use the `sdkmanager` command: ```sdkmanager "ndk;<required-ndk-version>"```
