@@ -8,6 +8,11 @@ class AuthMonitorService {
   final AuthService _authService = GetIt.I.get<AuthService>();
   Timer? _monitorTimer;
 
+  void dispose() {
+    stopMonitoring();
+    log('AuthMonitorService disposed.');
+  }
+
   void startMonitoring() {
     _monitorTimer?.cancel(); // Cancel any existing timer
     _monitorTimer = Timer.periodic(Duration(seconds: 15), (timer) {
@@ -31,10 +36,13 @@ class AuthMonitorService {
     try {
       final auth = await user.authentication;
 
+      bool hasAccessTokenChanged = auth.accessToken != null && auth.accessToken != _authService.accessToken;
+      bool hasTokenExpired = _authService.tokenExpiration != null && DateTime.now().toUtc().isAfter(_authService.tokenExpiration!);
+
       // Check if the access token has changed
-      if (auth.accessToken != null && auth.accessToken != _authService.accessToken) {
+      if (hasAccessTokenChanged || hasTokenExpired) {
         log('Access token has been updated automatically by Google Sign-In.');
-        _authService.updateAccessToken(auth.accessToken!);
+        await _authService.updateAccessToken(auth.accessToken!, forceReauth: hasTokenExpired);
       } else {
         log('Access token has not changed.');
       }

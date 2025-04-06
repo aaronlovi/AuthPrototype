@@ -23,6 +23,18 @@ class GoogleSignInDemoWidgetState extends State<GoogleSignInDemoWidget> {
       Conventions.formatDateTime(_authService.tokenExpiration);
 
   @override
+  void initState() {
+    super.initState();
+    _authService.addListener(_onAuthServiceChange);
+  }
+
+  @override
+  void dispose() {
+    _authService.removeListener(_onAuthServiceChange);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Google Sign-In')),
@@ -35,25 +47,31 @@ class GoogleSignInDemoWidgetState extends State<GoogleSignInDemoWidget> {
     );
   }
 
-  Widget _userSignedInBody() => Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      if (_userPhotoUrl != null)
-        CircleAvatar(backgroundImage: NetworkImage(_userPhotoUrl!), radius: 40),
-      SizedBox(height: 16),
-      Text('Name: $_userDisplayName'),
-      Text('Email: $_userEmail'),
-      SizedBox(height: 16),
-      Text('Access Token: $_userAccessToken'),
-      SizedBox(height: 16),
-      Text('Token Expiration: $_userTokenExpiration'),
-      SizedBox(height: 16),
-      ElevatedButton(onPressed: _signOut, child: Text('Sign Out')),
-      ElevatedButton(
-        onPressed: _forceTokenRefresh,
-        child: Text('Force Token Refresh'),
-      ),
-    ],
+  Widget _userSignedInBody() => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (_userPhotoUrl != null)
+          CircleAvatar(
+            backgroundImage: NetworkImage(_userPhotoUrl!),
+            radius: 40,
+          ),
+        SizedBox(height: 16),
+        Text('Name: $_userDisplayName'),
+        Text('Email: $_userEmail'),
+        SizedBox(height: 16),
+        Text('Access Token: $_userAccessToken'),
+        SizedBox(height: 16),
+        Text('Token Expiration: $_userTokenExpiration'),
+        SizedBox(height: 16),
+        ElevatedButton(onPressed: _signOut, child: Text('Sign Out')),
+        ElevatedButton(
+          onPressed: _forceTokenRefresh,
+          child: Text('Force Token Refresh'),
+        ),
+      ],
+    ),
   );
 
   Widget _userNotSignedInBody() =>
@@ -106,5 +124,10 @@ class GoogleSignInDemoWidgetState extends State<GoogleSignInDemoWidget> {
       log('Error signing in: $e');
       _showErrorDialog('Sign-In Error', 'Failed to sign in with Google: $e');
     }
+  }
+
+  void _onAuthServiceChange() {
+    if (!mounted) return;
+    setState(() {});
   }
 }
