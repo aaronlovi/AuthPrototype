@@ -23,15 +23,15 @@ public class TokenService
     {
         var response = await _httpClient.GetAsync($"https://oauth2.googleapis.com/tokeninfo?access_token={accessToken}");
         if (!response.IsSuccessStatusCode)
-            return ValidateAccessTokenResponse.Invalid;
+            return ValidateAccessTokenResponse.Empty;
 
         var responseContent = await response.Content.ReadAsStringAsync();
         var tokenInfo = Conventions.Deserialize<TokenInfoResponse>(responseContent);
 
-        if (tokenInfo == null || tokenInfo.ExpiresIn <= 0 || tokenInfo.Aud != _clientId)
-            return ValidateAccessTokenResponse.Invalid;
+        if (tokenInfo is null || tokenInfo.ExpiresIn <= 0 || tokenInfo.Aud != _clientId)
+            return ValidateAccessTokenResponse.Empty;
 
         var expirationDateTime = DateTime.UtcNow.AddSeconds(tokenInfo.ExpiresIn);
-        return new ValidateAccessTokenResponse(true, expirationDateTime);
+        return new ValidateAccessTokenResponse(expirationDateTime, tokenInfo.Email, tokenInfo.Sub);
     }
 }

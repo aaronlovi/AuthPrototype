@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
 
         DateTime expirationTime = validationResponse.ExpirationTime!.Value;
 
-        var user = new User(Guid.NewGuid().ToString(), request.Name, request.Email, "Google", request.AccessToken, expirationTime);
+        var user = new User(Guid.NewGuid().ToString(), request.Name, request.Email, "Google", validationResponse.ProviderUserId, request.AccessToken, expirationTime);
         _userStore.AddOrUpdateUser(user);
 
         return Ok(new AuthenticateResponse(request.AccessToken, expirationTime));

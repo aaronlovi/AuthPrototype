@@ -4,4 +4,6 @@ namespace AuthPrototype.Models;
 
 public record TokenInfoResponse(
     [property: JsonPropertyName("expires_in")] int ExpiresIn,
-    string Aud);
+    string Aud,
+    string Sub,
+    string Email);

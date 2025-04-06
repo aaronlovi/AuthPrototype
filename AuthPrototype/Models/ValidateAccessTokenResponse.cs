@@ -2,9 +2,10 @@
 
 namespace AuthPrototype.Models;
 
-public record ValidateAccessTokenResponse(bool IsValid, DateTime? ExpirationTime)
+public record ValidateAccessTokenResponse(DateTime? ExpirationTime, string Email, string ProviderUserId)
 {
-    public static readonly ValidateAccessTokenResponse Invalid = new(false, null);
+    public static readonly ValidateAccessTokenResponse Empty = new(null, string.Empty, string.Empty);
 
-    public bool IsInvalid => this == Invalid || IsValid == false || ExpirationTime is null;
+    public bool IsValid => ExpirationTime is not null && !string.IsNullOrWhiteSpace(Email) && !string.IsNullOrWhiteSpace(ProviderUserId);
+    public bool IsInvalid => !IsValid;
 }
