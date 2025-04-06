@@ -21,19 +21,21 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("authenticate")]
-    public async Task<IActionResult> Authenticate([FromBody] OAuthTokenRequest request)
+    public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest request)
     {
-        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken) || string.IsNullOrEmpty(request.RefreshToken))
+        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken))
             return BadRequest("Invalid request");
 
-        var (isValidToken, expirationDateTime) = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
-        if (!isValidToken || expirationDateTime == null)
+        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
+        if (validationResponse.IsInvalid)
             return Unauthorized("Invalid access token");
 
-        var user = new User(Guid.NewGuid().ToString(), request.Name, request.Email, "Google", request.AccessToken, request.RefreshToken, expirationDateTime.Value);
-        _userStore.AddUser(user);
+        DateTime expirationTime = validationResponse.ExpirationTime!.Value;
 
-        return Ok(new { request.AccessToken, request.RefreshToken, ExpirationDateTime = expirationDateTime.Value.ToString("o") });
+        var user = new User(Guid.NewGuid().ToString(), request.Name, request.Email, "Google", request.AccessToken, expirationTime);
+        _userStore.AddOrUpdateUser(user);
+
+        return Ok(new AuthenticateResponse(request.AccessToken, expirationTime));
     }
 
     [HttpPost("refresh")]
@@ -53,9 +55,9 @@ public class AuthController : ControllerBase
             return Unauthorized("Access token expired");
 
         // Update the user with new tokens and expiration date/time
-        var updatedUser = user with { AccessToken = request.AccessToken, RefreshToken = request.RefreshToken, ExpirationDateTime = expirationDateTime.Value };
-        _userStore.AddUser(updatedUser);
+        var updatedUser = user with { AccessToken = request.AccessToken, ExpirationDateTime = expirationDateTime.Value };
+        _userStore.AddOrUpdateUser(updatedUser);
 
-        return Ok(new { user.AccessToken, user.RefreshToken, ExpirationDateTime = expirationDateTime.Value.ToString("o") });
+        return Ok(new { user.AccessToken, ExpirationDateTime = expirationDateTime.Value.ToString("o") });
     }
 }

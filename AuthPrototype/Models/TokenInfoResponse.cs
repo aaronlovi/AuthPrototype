@@ -1,3 +1,7 @@
-﻿namespace AuthPrototype.Models;
+﻿using System.Text.Json.Serialization;
 
-public record TokenInfoResponse(int ExpiresIn, string Aud);
+namespace AuthPrototype.Models;
+
+public record TokenInfoResponse(
+    [property: JsonPropertyName("expires_in")] int ExpiresIn,
+    string Aud);

@@ -19,21 +19,19 @@ public class TokenService
         _clientId = config["CLIENT_ID"] ?? throw new InvalidOperationException("CLIENT_ID not set");
     }
 
-    public async Task<(bool IsValid, DateTime? ExpirationDateTime)> ValidateAccessTokenAsync(string accessToken)
+    public async Task<ValidateAccessTokenResponse> ValidateAccessTokenAsync(string accessToken)
     {
         var response = await _httpClient.GetAsync($"https://oauth2.googleapis.com/tokeninfo?access_token={accessToken}");
         if (!response.IsSuccessStatusCode)
-            return (false, null);
+            return ValidateAccessTokenResponse.Invalid;
 
         var responseContent = await response.Content.ReadAsStringAsync();
-        var tokenInfo = JsonSerializer.Deserialize<TokenInfoResponse>(responseContent);
+        var tokenInfo = Conventions.Deserialize<TokenInfoResponse>(responseContent);
 
         if (tokenInfo == null || tokenInfo.ExpiresIn <= 0 || tokenInfo.Aud != _clientId)
-        {
-            return (false, null);
-        }
+            return ValidateAccessTokenResponse.Invalid;
 
         var expirationDateTime = DateTime.UtcNow.AddSeconds(tokenInfo.ExpiresIn);
-        return (true, expirationDateTime);
+        return new ValidateAccessTokenResponse(true, expirationDateTime);
     }
 }

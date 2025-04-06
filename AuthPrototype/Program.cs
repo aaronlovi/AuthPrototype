@@ -1,9 +1,11 @@
 using System;
+using System.Text.Json.Serialization;
 using AuthPrototype.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace AuthPrototype;
@@ -23,9 +25,18 @@ public class Program
             var builder = WebApplication.CreateBuilder(args);
             builder.Host.UseSerilog();
 
-            builder.Services.AddSingleton(new UsersFileStore("users.txt"));
+            builder.Services.AddSingleton(svp =>
+            {
+                var logger = svp.GetRequiredService<ILogger<UsersFileStore>>();
+                return new UsersFileStore("users.txt", logger);
+            });
             builder.Services.AddHttpClient<TokenService>();
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                    options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
+                });
             builder.Configuration.AddUserSecrets<Program>();
             var app = builder.Build();
 

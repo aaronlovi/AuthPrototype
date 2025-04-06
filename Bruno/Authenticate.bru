@@ -1,0 +1,21 @@
+meta {
+  name: Authenticate
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BaseUrl}}/api/auth/authenticate
+  body: json
+  auth: inherit
+}
+
+body:json {
+  // public record OAuthTokenRequest(string Name, string Email, string AccessToken);
+  {
+    "name": "First Last",
+    "email": "nobody+1@gmail.com",
+    "accessToken": "abc-def"
+  }
+  
+}
