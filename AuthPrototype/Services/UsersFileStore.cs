@@ -61,4 +61,24 @@ public class UsersFileStore
             _logger.LogError(ex, "Error writing user to file");
         }
     }
+
+    public void RemoveUser(string email)
+    {
+        try
+        {
+            var users = GetAllUsers();
+            var userToRemove = users.FirstOrDefault(u => u.Email == email);
+
+            if (userToRemove != null)
+            {
+                users.Remove(userToRemove);
+                var userJsonLines = users.Select(u => Conventions.Serialize(u)).ToList();
+                File.WriteAllLines(_filePath, userJsonLines);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing user from file");
+        }
+    }
 }

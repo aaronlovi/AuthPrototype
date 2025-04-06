@@ -41,7 +41,7 @@ public class AuthController : ControllerBase
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken([FromBody] TokenRefreshRequest request)
     {
-        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken) || string.IsNullOrEmpty(request.RefreshToken))
+        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken))
             return BadRequest("Invalid request");
 
         var users = _userStore.GetAllUsers();
@@ -50,14 +50,27 @@ public class AuthController : ControllerBase
         if (user is null)
             return Unauthorized("User not found");
 
-        var (isValidToken, expirationDateTime) = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
-        if (!isValidToken || expirationDateTime is null || expirationDateTime <= DateTime.UtcNow)
+        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
+        if (validationResponse.IsInvalid || validationResponse.ExpirationTime!.Value <= DateTime.UtcNow)
             return Unauthorized("Access token expired");
 
+        DateTime expirationTime = validationResponse.ExpirationTime!.Value;
+
         // Update the user with new tokens and expiration date/time
-        var updatedUser = user with { AccessToken = request.AccessToken, ExpirationDateTime = expirationDateTime.Value };
+        var updatedUser = user with { AccessToken = request.AccessToken, ExpirationDateTime = expirationTime };
         _userStore.AddOrUpdateUser(updatedUser);
 
-        return Ok(new { user.AccessToken, ExpirationDateTime = expirationDateTime.Value.ToString("o") });
+        return Ok(new TokenRefreshResponse(user.AccessToken, expirationTime));
+    }
+
+    [HttpPost("signout")]
+    public IActionResult SignOut([FromBody] SignOutRequest request)
+    {
+        if (string.IsNullOrEmpty(request.Email))
+            return BadRequest("Invalid request");
+
+        _userStore.RemoveUser(request.Email);
+
+        return Ok("User signed out successfully");
     }
 }

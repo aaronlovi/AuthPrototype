@@ -1,3 +1,7 @@
-﻿namespace AuthPrototype.Models;
+﻿using System;
 
-public record TokenRefreshRequest(string Email, string AccessToken, string RefreshToken);
+namespace AuthPrototype.Models;
+
+public record TokenRefreshRequest(string Email, string AccessToken);
+
+public record TokenRefreshResponse(string AccessToken, DateTime ExpirationTime);
