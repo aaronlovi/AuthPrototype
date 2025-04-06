@@ -6,6 +6,7 @@ This project demonstrates Google Sign-In integration in a Flutter application. I
 - Google Sign-In authentication
 - Display user profile information
 - Sign-out functionality
+- Force token refresh functionality
 
 ---
 

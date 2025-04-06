@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:auth_prototype/utils/constants.dart';
+import 'package:auth_prototype/services/backend_auth_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
 
 class AuthService {
-  final String _backendEndpoint = Constants.backendEndpoint;
+  final BackendAuthService _backendAuthService = BackendAuthService();
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
   GoogleSignInAccount? _user;
@@ -26,7 +25,11 @@ class AuthService {
       }
 
       final GoogleSignInAuthentication auth = await account.authentication;
-      final http.Response response = await _authenticateWithBackend(account, auth);
+      final response = await _backendAuthService.authenticate(
+        name: account.displayName ?? '',
+        email: account.email,
+        accessToken: auth.accessToken ?? '',
+      );
 
       if (response.statusCode == 200) {
         _user = account;
@@ -44,22 +47,13 @@ class AuthService {
 
       await _googleSignIn.signOut();
 
-      final Map<String, String> requestBody = {'email': _user!.email};
-      final response = await http.post(
-        Uri.parse('$_backendEndpoint/api/auth/signout'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(requestBody),
-      );
+      final response = await _backendAuthService.signOut(_user!.email);
 
       if (response.statusCode == 200) {
-        log('Successfully signed out on the backend.');
-      } else {
-        log('Failed to sign out on the backend: ${response.statusCode} - ${response.body}');
+        _user = null;
+        _accessToken = '';
+        _tokenExpiration = null;
       }
-
-      _user = null;
-      _accessToken = '';
-      _tokenExpiration = null;
     } catch (e) {
       log('Sign-out error: $e');
       rethrow;
@@ -76,42 +70,22 @@ class AuthService {
       }
 
       final GoogleSignInAuthentication auth = await account.authentication;
-      final http.Response response = await _authenticateWithBackend(account, auth);
+
+      final response = await _backendAuthService.authenticate(
+        name: account.displayName ?? '',
+        email: account.email,
+        accessToken: auth.accessToken ?? '',
+      );
 
       if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
         _user = account;
         _accessToken = auth.accessToken ?? '';
+        _tokenExpiration = DateTime.parse(responseData['expirationDateTime']);
       }
     } catch (e) {
       log('Error refreshing token: $e');
       rethrow;
     }
-  }
-
-  Future<http.Response> _authenticateWithBackend(
-    GoogleSignInAccount account,
-    GoogleSignInAuthentication auth,
-  ) async {
-    final Map<String, String> requestBody = {
-      'name': account.displayName ?? '',
-      'email': account.email,
-      'accessToken': auth.accessToken ?? '',
-    };
-
-    final response = await http.post(
-      Uri.parse('$_backendEndpoint/api/auth/authenticate'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(requestBody),
-    );
-
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      log('Backend validated token successfully: $responseData');
-      _tokenExpiration = DateTime.parse(responseData['expirationDateTime']);
-    } else {
-      log('Backend authentication failed: ${response.statusCode} - ${response.body}');
-    }
-
-    return response;
   }
 }
