@@ -1,0 +1,3 @@
+class Constants {
+  static final String backendEndpoint = 'https://10.0.0.13:7137';
+}

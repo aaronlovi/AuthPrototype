@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'dart:developer';
 
-import 'package:auth_prototype/utils/display_format.dart';
+import 'package:auth_prototype/services/auth_service.dart';
+import 'package:auth_prototype/utils/conventions.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
+import 'package:get_it/get_it.dart';
 
 class GoogleSignInDemoWidget extends StatefulWidget {
   const GoogleSignInDemoWidget({super.key});
@@ -14,162 +13,24 @@ class GoogleSignInDemoWidget extends StatefulWidget {
 }
 
 class GoogleSignInDemoWidgetState extends State<GoogleSignInDemoWidget> {
-  final String _backendEndpoint = 'https://10.0.0.13:7137';
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+  final AuthService _authService = GetIt.instance<AuthService>();
 
-  GoogleSignInAccount? _user;
-  String _accessToken = '';
-  DateTime? _tokenExpiration;
-  String get tokenExpirationStr => Conventions.formatDateTime(_tokenExpiration);
-
-  Future<void> _signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
-      if (account == null) {
-        log('User canceled sign-in');
-        return; // user cancelled
-      }
-
-      log('User signed in:');
-      log('Display Name: ${account.displayName}');
-      log('Email: ${account.email}');
-      log('Photo URL: ${account.photoUrl}');
-      log('ID: ${account.id}');
-
-      final GoogleSignInAuthentication auth = await account.authentication;
-      http.Response response = await _authenticateWithBackend(account, auth);
-      if (response.statusCode != 200) return;
-
-      setState(() {
-        _user = account;
-        _accessToken = auth.accessToken ?? '';
-      });
-    } catch (e) {
-      log('Google sign-in error: $e');
-      _showErrorDialog('Error', 'An error occurred during sign-in: $e');
-    }
-  }
-
-  Future<http.Response> _authenticateWithBackend(
-    GoogleSignInAccount account,
-    GoogleSignInAuthentication auth,
-  ) async {
-    final Map<String, String> requestBody = {
-      'name': account.displayName ?? '',
-      'email': account.email,
-      'accessToken': auth.accessToken ?? '',
-    };
-
-    final response = await http.post(
-      Uri.parse('$_backendEndpoint/api/auth/authenticate'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(requestBody),
-    );
-
-    // Handle the response
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      log('Backend validated token successfully: $responseData');
-      setState(() {
-        _tokenExpiration = DateTime.parse(responseData['expirationDateTime']);
-      });
-    } else if (response.statusCode == 400) {
-      log('Bad request: ${response.body}');
-      _showErrorDialog('Error', 'Bad request: ${response.body}');
-    } else if (response.statusCode == 401) {
-      log('Unauthorized: ${response.body}');
-      _showErrorDialog('Error', 'Unauthorized: ${response.body}');
-    } else {
-      log('Unexpected error: ${response.statusCode} - ${response.body}');
-      _showErrorDialog('Error', 'Unexpected error: ${response.body}');
-    }
-
-    return response;
-  }
-
-  Future<void> _signOut() async {
-    try {
-      if (_user == null) return;
-
-      await _googleSignIn.signOut();
-
-      final Map<String, String> requestBody = {'email': _user!.email};
-
-      final response = await http.post(
-        Uri.parse('$_backendEndpoint/api/auth/signout'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(requestBody),
-      );
-
-      if (response.statusCode == 200) {
-        log('Successfully signed out on the backend.');
-      } else {
-        log(
-          'Failed to sign out on the backend: ${response.statusCode} - ${response.body}',
-        );
-        _showErrorDialog(
-          'Error',
-          'Failed to sign out on the backend: ${response.body}',
-        );
-      }
-
-      setState(() {
-        _user = null;
-        _accessToken = '';
-        _tokenExpiration = null;
-      });
-    } catch (e) {
-      log('Sign-out error: $e');
-      _showErrorDialog('Error', 'An error occurred during sign-out: $e');
-    }
-  }
-
-  Future<void> _refreshGoogleToken() async {
-    try {
-      // Sign out the user
-      await _googleSignIn.disconnect();
-
-      // Sign back in to get a new token
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
-      if (account == null) {
-        log('User canceled re-sign-in');
-        return; // User canceled
-      }
-
-      final GoogleSignInAuthentication auth = await account.authentication;
-      // Re-authenticate with the backend
-      final http.Response response = await _authenticateWithBackend(
-        account,
-        auth,
-      );
-
-      if (response.statusCode != 200) {
-        log('Failed to re-authenticate with the backend');
-        return;
-      }
-
-      setState(() {
-        _user = account;
-        _accessToken = auth.accessToken ?? '';
-      });
-
-      log('Token refreshed successfully');
-      log('New Access Token: $_accessToken');
-    } catch (e) {
-      log('Error refreshing token: $e');
-      _showErrorDialog(
-        'Error',
-        'An error occurred while refreshing the token: $e',
-      );
-    }
-  }
+  String? get _userPhotoUrl => _authService.user?.photoUrl;
+  String get _userDisplayName => _authService.user?.displayName ?? 'N/A';
+  String get _userEmail => _authService.user?.email ?? 'N/A';
+  String get _userAccessToken => _authService.accessToken;
+  String get _userTokenExpiration =>
+      Conventions.formatDateTime(_authService.tokenExpiration);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Google Sign-In')),
       body: Center(
-        child: _user == null ? _userNotSignedInBody() : _userSignedInBody(),
+        child:
+            _authService.user == null
+                ? _userNotSignedInBody()
+                : _userSignedInBody(),
       ),
     );
   }
@@ -177,31 +38,26 @@ class GoogleSignInDemoWidgetState extends State<GoogleSignInDemoWidget> {
   Widget _userSignedInBody() => Column(
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
-      if (_user!.photoUrl != null)
-        CircleAvatar(
-          backgroundImage: NetworkImage(_user!.photoUrl!),
-          radius: 40,
-        ),
+      if (_userPhotoUrl != null)
+        CircleAvatar(backgroundImage: NetworkImage(_userPhotoUrl!), radius: 40),
       SizedBox(height: 16),
-      Text('Name: ${_user!.displayName ?? 'N/A'}'),
-      Text('Email: ${_user!.email}'),
+      Text('Name: $_userDisplayName'),
+      Text('Email: $_userEmail'),
       SizedBox(height: 16),
-      Text('Access Token: $_accessToken'),
+      Text('Access Token: $_userAccessToken'),
       SizedBox(height: 16),
-      Text('Token Expiration: $tokenExpirationStr'),
+      Text('Token Expiration: $_userTokenExpiration'),
       SizedBox(height: 16),
       ElevatedButton(onPressed: _signOut, child: Text('Sign Out')),
       ElevatedButton(
-        onPressed: _refreshGoogleToken,
-        child: Text('Refresh Token'),
+        onPressed: _forceTokenRefresh,
+        child: Text('Force Token Refresh'),
       ),
     ],
   );
 
-  Widget _userNotSignedInBody() => ElevatedButton(
-    onPressed: _signInWithGoogle,
-    child: Text('Sign in with Google'),
-  );
+  Widget _userNotSignedInBody() =>
+      ElevatedButton(onPressed: _signIn, child: Text('Sign in with Google'));
 
   void _showErrorDialog(String title, String message) {
     if (!mounted) return;
@@ -220,5 +76,35 @@ class GoogleSignInDemoWidgetState extends State<GoogleSignInDemoWidget> {
             ],
           ),
     );
+  }
+
+  void _signOut() async {
+    try {
+      await _authService.signOut();
+      setState(() {});
+    } catch (e) {
+      log('Error signing out: $e');
+      _showErrorDialog('Sign-Out Error', 'Failed to sign out: $e');
+    }
+  }
+
+  void _forceTokenRefresh() async {
+    try {
+      await _authService.refreshGoogleToken();
+      setState(() {});
+    } catch (e) {
+      log('Error refreshing token: $e');
+      _showErrorDialog('Token Refresh Error', 'Failed to refresh token: $e');
+    }
+  }
+
+  void _signIn() async {
+    try {
+      await _authService.signInWithGoogle();
+      setState(() {});
+    } catch (e) {
+      log('Error signing in: $e');
+      _showErrorDialog('Sign-In Error', 'Failed to sign in with Google: $e');
+    }
   }
 }
