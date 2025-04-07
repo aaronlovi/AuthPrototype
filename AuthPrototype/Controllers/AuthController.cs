@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken))
             return BadRequest("Invalid request");
 
-        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
+        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessToken(request.AccessToken);
         if (validationResponse.IsInvalid)
             return Unauthorized("Invalid access token");
 
@@ -50,7 +50,7 @@ public class AuthController : ControllerBase
         if (user is null)
             return Unauthorized("User not found");
 
-        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessTokenAsync(request.AccessToken);
+        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessToken(request.AccessToken);
         if (validationResponse.IsInvalid || validationResponse.ExpirationTime!.Value <= DateTime.UtcNow)
             return Unauthorized("Access token expired");
 

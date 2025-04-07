@@ -25,13 +25,16 @@ public class Program
             var builder = WebApplication.CreateBuilder(args);
             builder.Host.UseSerilog();
 
-            builder.Services.AddSingleton(svp =>
-            {
-                var logger = svp.GetRequiredService<ILogger<UsersFileStore>>();
-                return new UsersFileStore("users.txt", logger);
-            });
-            builder.Services.AddHttpClient<TokenService>();
-            builder.Services.AddControllers()
+            builder.Services
+                .AddSingleton(svp => {
+                    var logger = svp.GetRequiredService<ILogger<UsersFileStore>>();
+                    return new UsersFileStore("users.txt", logger);
+                })
+                .AddSingleton<ITokenCache, MemoryTokenCache>()
+                .AddMemoryCache()
+                .AddHttpClient<TokenService>();
+            builder.Services
+                .AddControllers()
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
