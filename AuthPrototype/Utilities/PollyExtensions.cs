@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.CircuitBreaker;
+using Polly.RateLimit;
 using Polly.Retry;
 
 namespace AuthPrototype.Utilities;
@@ -41,4 +42,7 @@ public static class PollyExtensions {
                     logger.LogInformation("Circuit breaker reset");
                 });
     }
+
+    public static AsyncRateLimitPolicy<T> GetRateLimitPolicy<T>(int numberOfExecutions, TimeSpan perTimeSpan) =>
+        Policy.RateLimitAsync<T>(numberOfExecutions, perTimeSpan, numberOfExecutions);
 }

@@ -4,11 +4,12 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>disable</ImplicitUsings>
-        <NoWarn>IDE0021</NoWarn>
+        <NoWarn>IDE0021,IDE0290</NoWarn>
     </PropertyGroup>
 
-    <!-- NoWarn
-    IDE0021: Use expression body for constructor
+    <!--
+        IDE0021: Use expression body for constructor
+        IDE0290: Use primary constructor
     -->
     
 </Project>
