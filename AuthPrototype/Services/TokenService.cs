@@ -5,12 +5,21 @@ using AuthPrototype.Models;
 using AuthPrototype.Utilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Retry;
 
 namespace AuthPrototype.Services;
 
 public class TokenService
 {
     private const int MaxLogStringLength = 1000;
+    private const int MaxRetryAttempts = 3;
+    private static readonly TimeSpan[] RetryDelays = [ TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4) ];
+    private static readonly AsyncRetryPolicy<HttpResponseMessage> RetryPolicy =
+        PollyExtensions.GetRetryPolicy<HttpResponseMessage>(MaxRetryAttempts, RetryDelays, r => !r.IsSuccessStatusCode);
+    private static readonly AsyncCircuitBreakerPolicy<HttpResponseMessage> CircuitBreakerPolicy =
+        PollyExtensions.GetCircuitBreakerPolicy<HttpResponseMessage>(2, TimeSpan.FromMinutes(1), r => !r.IsSuccessStatusCode);
 
     private readonly HttpClient _httpClient;
     private readonly string _clientId;
@@ -50,9 +59,12 @@ public class TokenService
             return cachedResponse;
         }
 
-        _logger.LogInformation("ValidateAccessToken - to Google");
+        _logger.LogInformation("ValidateAccessToken - not found in cache, validating with Google");
 
-        var response = await _httpClient.GetAsync($"https://oauth2.googleapis.com/tokeninfo?access_token={accessToken}");
+        var context = new Context().WithLogger(_logger);
+        var response = await Policy.WrapAsync(RetryPolicy, CircuitBreakerPolicy)
+            .ExecuteAsync((ctx) => _httpClient.GetAsync($"https://oauth2.googleapis.com/tokeninfo?access_token={accessToken}"), context);
+
         if (!response.IsSuccessStatusCode) {
             _logger.LogWarning("ValidateAccessToken - failed - Status Code {StatusCode}", response.StatusCode);
             return ValidateAccessTokenResponse.Empty;

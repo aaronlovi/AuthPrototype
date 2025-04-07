@@ -1,0 +1,14 @@
+<Project>
+    
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <NoWarn>IDE0021</NoWarn>
+    </PropertyGroup>
+
+    <!-- NoWarn
+    IDE0021: Use expression body for constructor
+    -->
+    
+</Project>
