@@ -5,7 +5,7 @@ using Polly.CircuitBreaker;
 using Polly.RateLimit;
 using Polly.Retry;
 
-namespace AuthPrototype.Utilities;
+namespace OAuthToolkit.Shared;
 
 public static class PollyExtensions {
     public static Context WithLogger(this Context context, ILogger logger) {

@@ -1,10 +1,11 @@
 ﻿using System;
-using AuthPrototype.Models;
 using Microsoft.Extensions.Caching.Memory;
+using OAuthToolkit.Contracts;
+using OAuthToolkit.Models;
 
-namespace AuthPrototype.Services;
+namespace OAuthToolkit.Services;
 
-public class MemoryTokenCache : ITokenCache {
+internal class MemoryTokenCache : ITokenCache {
     private static readonly TimeSpan DefaultExpiration = TimeSpan.FromMinutes(5);
 
     private readonly IMemoryCache _cache;
@@ -18,7 +19,6 @@ public class MemoryTokenCache : ITokenCache {
         return response;
     }
 
-    public void Set(string accessToken, ValidateAccessTokenResponse response, TimeSpan? expiration) {
+    public void Set(string accessToken, ValidateAccessTokenResponse response, TimeSpan? expiration) => 
         _cache.Set(accessToken, response, expiration ?? DefaultExpiration);
-    }
 }

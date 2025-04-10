@@ -1,7 +1,7 @@
 ﻿using System;
-using AuthPrototype.Models;
+using OAuthToolkit.Models;
 
-namespace AuthPrototype.Services;
+namespace OAuthToolkit.Contracts;
 
 public interface ITokenCache {
     ValidateAccessTokenResponse? Get(string accessToken);

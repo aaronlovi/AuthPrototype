@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AuthPrototype.Models;
 using AuthPrototype.Services;
 using Microsoft.AspNetCore.Mvc;
+using OAuthToolkit.Contracts;
+using OAuthToolkit.Models;
 
 namespace AuthPrototype.Controllers;
 
@@ -12,21 +15,21 @@ namespace AuthPrototype.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly UsersFileStore _userStore;
-    private readonly TokenService _tokenService;
+    private readonly ITokenService _tokenService;
 
-    public AuthController(UsersFileStore userStore, TokenService tokenService)
+    public AuthController(UsersFileStore userStore, ITokenService tokenService)
     {
         _userStore = userStore;
         _tokenService = tokenService;
     }
 
     [HttpPost("authenticate")]
-    public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest request)
+    public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken))
             return BadRequest("Invalid request");
 
-        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessToken(request.AccessToken);
+        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessToken(request.AccessToken, ct);
         if (validationResponse.IsInvalid)
             return Unauthorized("Invalid access token");
 
@@ -39,7 +42,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken([FromBody] TokenRefreshRequest request)
+    public async Task<IActionResult> RefreshToken([FromBody] TokenRefreshRequest request, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken))
             return BadRequest("Invalid request");
@@ -50,7 +53,7 @@ public class AuthController : ControllerBase
         if (user is null)
             return Unauthorized("User not found");
 
-        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessToken(request.AccessToken);
+        ValidateAccessTokenResponse validationResponse = await _tokenService.ValidateAccessToken(request.AccessToken, ct);
         if (validationResponse.IsInvalid || validationResponse.ExpirationTime!.Value <= DateTime.UtcNow)
             return Unauthorized("Access token expired");
 

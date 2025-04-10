@@ -1,13 +1,13 @@
-﻿using AuthPrototype.Utilities;
-using Polly.CircuitBreaker;
-using Polly;
+﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System;
-using Xunit;
 using Microsoft.Extensions.Logging;
 using Moq;
+using OAuthToolkit.Shared;
+using Polly;
+using Polly.CircuitBreaker;
 using Polly.RateLimit;
+using Xunit;
 
 namespace AuthPrototype.Tests.Utilities;
 

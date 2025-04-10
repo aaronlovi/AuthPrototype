@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AuthPrototype.Utilities;
+namespace OAuthToolkit.Shared;
 
 public static class StringUtils {
     /// <summary>

@@ -1,5 +1,5 @@
 ﻿using System;
-using AuthPrototype.Utilities;
+using OAuthToolkit.Shared;
 using Xunit;
 
 namespace AuthPrototype.Tests.Utilities;

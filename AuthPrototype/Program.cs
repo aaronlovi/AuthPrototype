@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OAuthToolkit;
 using Serilog;
 
 namespace AuthPrototype;
@@ -25,22 +26,20 @@ public class Program
             var builder = WebApplication.CreateBuilder(args);
             builder.Host.UseSerilog();
 
-            builder.Services
-                .AddSingleton(svp => {
+            builder.Services.
+                AddSingleton(svp => {
                     var logger = svp.GetRequiredService<ILogger<UsersFileStore>>();
                     return new UsersFileStore("users.txt", logger);
-                })
-                .AddSingleton<ITokenCache, MemoryTokenCache>()
-                .AddMemoryCache()
-                .AddHttpClient<TokenService>();
-            builder.Services
-                .AddControllers()
-                .AddJsonOptions(options =>
+                }).
+                AddControllers().
+                AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                     options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
                 });
-            builder.Configuration.AddUserSecrets<Program>();
+
+            builder.Services.ConfigureOAuthToolkit(builder.Configuration);
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())

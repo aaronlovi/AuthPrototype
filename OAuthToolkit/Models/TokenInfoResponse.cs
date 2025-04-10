@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AuthPrototype.Models;
+namespace OAuthToolkit.Models;
 
 public record TokenInfoResponse(
     [property: JsonPropertyName("expires_in")] int ExpiresIn,

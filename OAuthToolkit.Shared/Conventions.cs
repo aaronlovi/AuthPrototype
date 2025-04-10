@@ -1,12 +1,10 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace AuthPrototype;
+namespace OAuthToolkit.Shared;
 
-public static class Conventions
-{
-    public static readonly JsonSerializerOptions SerializationOptions = new JsonSerializerOptions()
-    {
+public static class Conventions {
+    public static readonly JsonSerializerOptions SerializationOptions = new() {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
         PropertyNameCaseInsensitive = true,

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AuthPrototype.Models;
+namespace OAuthToolkit.Models;
 
 public record ValidateAccessTokenResponse(DateTime? ExpirationTime, string Email, string ProviderUserId)
 {

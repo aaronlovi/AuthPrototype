@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using AuthPrototype.Models;
 using Microsoft.Extensions.Logging;
+using OAuthToolkit.Shared;
 
 namespace AuthPrototype.Services;
 
@@ -25,7 +26,7 @@ public class UsersFileStore
         try
         {
             var lines = File.ReadAllLines(_filePath);
-            return lines.Select(line => Conventions.Deserialize<User>(line))
+            return lines.Select(Conventions.Deserialize<User>)
                         .Where(user => user is not null)
                         .ToList()!;
         }
