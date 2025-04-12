@@ -9,11 +9,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\OAuthToolkit.Shared\OAuthToolkit.Shared.csproj" />
-		<InternalsVisibleTo Include="OAuthToolkit.Tests" />
+        <InternalsVisibleTo Include="OAuthToolkit.Tests" />
     </ItemGroup>
 
-	<PropertyGroup>
-		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <PropertyGroup>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     </PropertyGroup>
 
 </Project>
