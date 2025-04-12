@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using OAuthToolkit.Models;
