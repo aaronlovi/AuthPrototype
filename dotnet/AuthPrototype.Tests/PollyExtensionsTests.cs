@@ -22,7 +22,7 @@ public class PollyExtensionsTests {
     public async Task GetRetryPolicy_ShouldRetry_OnFailure() {
         AsyncRetryPolicy<HttpResponseMessage> retryPolicy = PollyExtensions.GetRetryPolicy<HttpResponseMessage>(
             maxRetryAttempts: 3,
-            retryDelays: [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)],
+            retryDelays: [TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(20), TimeSpan.FromMilliseconds(30)],
             resultPredicate: r => !r.IsSuccessStatusCode);
 
         Context context = new Context().WithLogger(_mockLogger.Object);
