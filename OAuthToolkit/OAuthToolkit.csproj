@@ -11,4 +11,8 @@
         <ProjectReference Include="..\OAuthToolkit.Shared\OAuthToolkit.Shared.csproj" />
     </ItemGroup>
 
+	<PropertyGroup>
+        <InternalsVisibleTo>OAuthToolkit.Tests</InternalsVisibleTo>
+    </PropertyGroup>
+
 </Project>
