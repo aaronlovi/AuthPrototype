@@ -25,6 +25,7 @@ internal class MemoryTokenCache : ITokenCache {
     /// </summary>
     /// <param name="cache">The memory cache instance to use for token storage.</param>
     public MemoryTokenCache(IMemoryCache cache) {
+        ArgumentNullException.ThrowIfNull(cache);
         _cache = cache;
     }
 
