@@ -3,13 +3,12 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using OAuthToolkit.Shared;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.RateLimit;
 using Xunit;
 
-namespace AuthPrototype.Tests.Utilities;
+namespace OAuthToolkit.Shared.Tests;
 
 public class PollyExtensionsTests {
     private readonly Mock<ILogger> _mockLogger;

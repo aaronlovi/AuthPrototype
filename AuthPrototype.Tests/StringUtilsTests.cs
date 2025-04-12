@@ -2,14 +2,14 @@
 using OAuthToolkit.Shared;
 using Xunit;
 
-namespace AuthPrototype.Tests.Utilities;
+namespace OAuthToolkit.Shared.Tests;
 
 public class StringUtilsTests {
     [Fact]
     public void Truncate_ShouldThrowArgumentNullException_WhenStringIsNull() {
         string value = null!;
         int threshold = 5;
-        Assert.Throws<ArgumentNullException>(() => StringUtils.Truncate(value, threshold));
+        Assert.Throws<ArgumentNullException>(() => value.Truncate(threshold));
     }
 
     [Fact]
