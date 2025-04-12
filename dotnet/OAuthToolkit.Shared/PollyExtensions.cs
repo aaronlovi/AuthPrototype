@@ -28,7 +28,7 @@ public static class PollyExtensions {
 
     public static AsyncCircuitBreakerPolicy<T> GetCircuitBreakerPolicy<T>(
         int maxExceptionsBeforeBreak,
-        TimeSpan durationOfBreak, 
+        TimeSpan durationOfBreak,
         Func<T, bool> resultPredicate) {
         return Policy
             .HandleResult(resultPredicate)

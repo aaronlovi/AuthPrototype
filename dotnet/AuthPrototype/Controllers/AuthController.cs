@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,20 +13,17 @@ namespace AuthPrototype.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
-{
+public class AuthController : ControllerBase {
     private readonly UsersFileStore _userStore;
     private readonly ITokenService _tokenService;
 
-    public AuthController(UsersFileStore userStore, ITokenService tokenService)
-    {
+    public AuthController(UsersFileStore userStore, ITokenService tokenService) {
         _userStore = userStore;
         _tokenService = tokenService;
     }
 
     [HttpPost("authenticate")]
-    public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest request, CancellationToken ct)
-    {
+    public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest request, CancellationToken ct) {
         if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken))
             return BadRequest("Invalid request");
 
@@ -42,13 +40,12 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken([FromBody] TokenRefreshRequest request, CancellationToken ct)
-    {
+    public async Task<IActionResult> RefreshToken([FromBody] TokenRefreshRequest request, CancellationToken ct) {
         if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.AccessToken))
             return BadRequest("Invalid request");
 
-        var users = _userStore.GetAllUsers();
-        var user = users.FirstOrDefault(u => u.Email == request.Email);
+        List<User> users = _userStore.GetAllUsers();
+        User? user = users.FirstOrDefault(u => u.Email == request.Email);
 
         if (user is null)
             return Unauthorized("User not found");
@@ -60,15 +57,14 @@ public class AuthController : ControllerBase
         DateTime expirationTime = validationResponse.ExpirationTime!.Value;
 
         // Update the user with new tokens and expiration date/time
-        var updatedUser = user with { AccessToken = request.AccessToken, ExpirationDateTime = expirationTime };
+        User updatedUser = user with { AccessToken = request.AccessToken, ExpirationDateTime = expirationTime };
         _userStore.AddOrUpdateUser(updatedUser);
 
         return Ok(new TokenRefreshResponse(user.AccessToken, expirationTime));
     }
 
     [HttpPost("signout")]
-    public IActionResult SignOut([FromBody] SignOutRequest request)
-    {
+    public IActionResult SignOut([FromBody] SignOutRequest request) {
         if (string.IsNullOrEmpty(request.Email))
             return BadRequest("Invalid request");
 

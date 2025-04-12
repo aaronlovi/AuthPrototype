@@ -81,11 +81,11 @@ internal class TokenService : ITokenService {
     /// If the token is invalid or expired, it returns an empty response.
     /// </remarks>
     public async Task<ValidateAccessTokenResponse> ValidateAccessToken(string accessToken, CancellationToken ct) {
-        using var accessTokenLogContext = _logger.BeginScope("AccessToken: {AccessToken}", accessToken);
+        using IDisposable? accessTokenLogContext = _logger.BeginScope("AccessToken: {AccessToken}", accessToken);
 
         _logger.LogInformation("ValidateAccessToken");
 
-        var cachedResponse = _tokenCache.Get(accessToken);
+        ValidateAccessTokenResponse? cachedResponse = _tokenCache.Get(accessToken);
         if (cachedResponse is not null) {
             _logger.LogInformation("ValidateAccessToken - found in cache");
             return cachedResponse;
@@ -93,7 +93,7 @@ internal class TokenService : ITokenService {
 
         _logger.LogInformation("ValidateAccessToken - not found in cache, validating with provider now");
 
-        var context = new Context().WithLogger(_logger);
+        Context context = new Context().WithLogger(_logger);
 
         if (!_semaphore.Wait(0, ct)) {
             _logger.LogWarning("ValidateAccessToken - too many outstanding requests");
@@ -101,7 +101,7 @@ internal class TokenService : ITokenService {
         }
 
         try {
-            var response = await Policy.WrapAsync(_rateLimitPolicy, _retryPolicy, _circuitBreakerPolicy)
+            HttpResponseMessage response = await Policy.WrapAsync(_rateLimitPolicy, _retryPolicy, _circuitBreakerPolicy)
                 .ExecuteAsync((ctx, ct) => _tokenHttpClient.GetTokenInfoAsync(accessToken, ct), context, ct);
 
             if (!response.IsSuccessStatusCode) {
@@ -109,17 +109,17 @@ internal class TokenService : ITokenService {
                 return ValidateAccessTokenResponse.Empty;
             }
 
-            var responseContent = await response.Content.ReadAsStringAsync(ct);
-            var tokenInfo = Conventions.Deserialize<TokenInfoResponse>(responseContent);
+            string responseContent = await response.Content.ReadAsStringAsync(ct);
+            TokenInfoResponse? tokenInfo = Conventions.Deserialize<TokenInfoResponse>(responseContent);
 
-            var validateResponse = _tokenValidator.ValidateTokenInfo(tokenInfo, responseContent);
+            ValidateAccessTokenResponse validateResponse = _tokenValidator.ValidateTokenInfo(tokenInfo, responseContent);
 
             if (validateResponse.IsValid)
                 _tokenCache.Set(accessToken, validateResponse, TimeSpan.FromSeconds(tokenInfo!.ExpiresIn));
 
             return validateResponse;
         } finally {
-            _semaphore.Release();
+            _ = _semaphore.Release();
         }
     }
 }

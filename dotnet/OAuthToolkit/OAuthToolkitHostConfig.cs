@@ -26,7 +26,7 @@ public static class OAuthToolkitHostConfig {
     /// - <see cref="ITokenService"/> implementation
     /// </remarks>
     public static IServiceCollection ConfigureOAuthToolkit(this IServiceCollection services, IConfiguration configuration) {
-        services.
+        _ = services.
             Configure<TokenServiceOptions>(configuration.GetSection("TokenServiceOptions")).
             AddMemoryCache().
             AddSingleton<ITokenCache, MemoryTokenCache>().

@@ -6,8 +6,7 @@ namespace OAuthToolkit.Shared;
 /// Defines an interface for providing the current date and time,
 /// allowing for abstraction of DateTime operations for testability.
 /// </summary>
-public interface IDateTimeProvider
-{
+public interface IDateTimeProvider {
     /// <summary>
     /// Gets the current date and time in UTC.
     /// </summary>
@@ -23,8 +22,7 @@ public interface IDateTimeProvider
 /// Default implementation of <see cref="IDateTimeProvider"/> that uses
 /// the system clock to provide current date and time values.
 /// </summary>
-public class DateTimeProvider : IDateTimeProvider
-{
+public class DateTimeProvider : IDateTimeProvider {
     /// <summary>
     /// Gets the current date and time in UTC.
     /// </summary>
@@ -47,8 +45,7 @@ public class DateTimeProvider : IDateTimeProvider
 /// precise control over time is required. The internal representation of time
 /// is always stored in UTC.
 /// </remarks>
-public class TestDateTimeProvider : IDateTimeProvider
-{
+public class TestDateTimeProvider : IDateTimeProvider {
     private DateTime _theTime;
 
     /// <summary>
@@ -57,8 +54,7 @@ public class TestDateTimeProvider : IDateTimeProvider
     /// <param name="dt">
     /// Optional initial date and time value. If not specified, the current UTC time is used.
     /// </param>
-    public TestDateTimeProvider(DateTime? dt = null)
-    {
+    public TestDateTimeProvider(DateTime? dt = null) {
         _theTime = dt?.ToUniversalTime() ?? DateTime.UtcNow;
     }
 
@@ -70,8 +66,7 @@ public class TestDateTimeProvider : IDateTimeProvider
     /// converted to UTC using <see cref="DateTime.ToUniversalTime"/> if it is not already in UTC.
     /// This ensures that the internal time is always stored in UTC.
     /// </remarks>
-    public DateTime NowUtc
-    {
+    public DateTime NowUtc {
         get => _theTime;
         set => _theTime = value.ToUniversalTime();
     }
@@ -84,8 +79,7 @@ public class TestDateTimeProvider : IDateTimeProvider
     /// When setting this property, the provided <see cref="DateTime"/> is automatically
     /// converted to UTC for internal storage, regardless of its original <see cref="DateTimeKind"/>.
     /// </remarks>
-    public DateTime NowLocal
-    {
+    public DateTime NowLocal {
         get => _theTime.ToLocalTime();
         set => _theTime = value.ToUniversalTime();
     }

@@ -22,35 +22,32 @@ public class Program
         {
             Log.Information("Starting up the application");
 
-            var builder = WebApplication.CreateBuilder(args);
-            builder.Host.UseSerilog();
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+            _ = builder.Host.UseSerilog();
 
-            builder.Services.
+            _ = builder.Services.
                 AddSingleton(svp => {
-                    var logger = svp.GetRequiredService<ILogger<UsersFileStore>>();
+                    ILogger<UsersFileStore> logger = svp.GetRequiredService<ILogger<UsersFileStore>>();
                     return new UsersFileStore("users.txt", logger);
                 }).
                 AddControllers().
-                AddJsonOptions(options =>
-                {
+                AddJsonOptions(options => {
                     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                     options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
                 });
 
-            builder.Services.ConfigureOAuthToolkit(builder.Configuration);
+            _ = builder.Services.ConfigureOAuthToolkit(builder.Configuration);
 
-            var app = builder.Build();
+            WebApplication app = builder.Build();
 
             if (app.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+                _ = app.UseDeveloperExceptionPage();
 
-            app.UseHttpsRedirection();
-            app.UseAuthorization();
-            app.MapControllers();
+            _ = app.UseHttpsRedirection();
+            _ = app.UseAuthorization();
+            _ = app.MapControllers();
 
-            app.MapGet("/", () => $"AuthPrototype in {app.Environment.EnvironmentName} mode");
+            _ = app.MapGet("/", () => $"AuthPrototype in {app.Environment.EnvironmentName} mode");
 
             app.Run();
         }

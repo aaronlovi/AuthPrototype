@@ -9,8 +9,7 @@
 /// Services can access these settings by accepting an <c>IOptions&lt;TokenServiceOptions&gt;</c> parameter
 /// in their constructors.
 /// </remarks>
-public class TokenServiceOptions
-{
+public class TokenServiceOptions {
     /// <summary>
     /// The default maximum number of concurrent token validation requests.
     /// </summary>

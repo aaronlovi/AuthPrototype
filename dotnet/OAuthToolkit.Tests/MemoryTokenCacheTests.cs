@@ -7,15 +7,13 @@ using Xunit;
 
 namespace OAuthToolkit.Tests;
 
-public class MemoryTokenCacheTests
-{
+public class MemoryTokenCacheTests {
     private readonly Mock<IMemoryCache> _mockCache;
     private readonly MemoryTokenCache _tokenCache;
     private readonly string _testAccessToken = "test-access-token";
     private readonly ValidateAccessTokenResponse _testResponse;
 
-    public MemoryTokenCacheTests()
-    {
+    public MemoryTokenCacheTests() {
         _mockCache = new Mock<IMemoryCache>();
         _tokenCache = new MemoryTokenCache(_mockCache.Object);
         _testResponse = new ValidateAccessTokenResponse(
@@ -28,15 +26,14 @@ public class MemoryTokenCacheTests
     /// Verifies that the Get method returns the cached response when a token exists in the cache.
     /// </summary>
     [Fact]
-    public void Get_WhenTokenExists_ReturnsResponse()
-    {
+    public void Get_WhenTokenExists_ReturnsResponse() {
         // Arrange
         object? expectedResponse = _testResponse;
-        _mockCache.Setup(m => m.TryGetValue(_testAccessToken, out expectedResponse))
+        _ = _mockCache.Setup(m => m.TryGetValue(_testAccessToken, out expectedResponse))
             .Returns(true);
 
         // Act
-        var result = _tokenCache.Get(_testAccessToken);
+        ValidateAccessTokenResponse? result = _tokenCache.Get(_testAccessToken);
 
         // Assert
         Assert.NotNull(result);
@@ -48,15 +45,14 @@ public class MemoryTokenCacheTests
     /// Verifies that the Get method returns null when a token does not exist in the cache.
     /// </summary>
     [Fact]
-    public void Get_WhenTokenDoesNotExist_ReturnsNull()
-    {
+    public void Get_WhenTokenDoesNotExist_ReturnsNull() {
         // Arrange
         object? expectedResponse = null;
-        _mockCache.Setup(m => m.TryGetValue(_testAccessToken, out expectedResponse))
+        _ = _mockCache.Setup(m => m.TryGetValue(_testAccessToken, out expectedResponse))
             .Returns(false);
 
         // Act
-        var result = _tokenCache.Get(_testAccessToken);
+        ValidateAccessTokenResponse? result = _tokenCache.Get(_testAccessToken);
 
         // Assert
         Assert.Null(result);
@@ -67,8 +63,7 @@ public class MemoryTokenCacheTests
     /// Tests that Set method correctly uses the explicitly provided expiration time when caching a token.
     /// </summary>
     [Fact]
-    public void Set_WithExplicitExpiration_StoresWithCorrectExpiration()
-    {
+    public void Set_WithExplicitExpiration_StoresWithCorrectExpiration() {
         // Arrange
         var expiration = TimeSpan.FromMinutes(10);
 
@@ -87,10 +82,9 @@ public class MemoryTokenCacheTests
     /// Confirms that the Set method uses the default 5-minute expiration when no expiration is specified.
     /// </summary>
     [Fact]
-    public void Set_WithNullExpiration_UsesDefaultExpiration()
-    {
+    public void Set_WithNullExpiration_UsesDefaultExpiration() {
         // Arrange - default expiration is 5 minutes per the implementation
-        TimeSpan defaultExpiration = TimeSpan.FromMinutes(5);
+        var defaultExpiration = TimeSpan.FromMinutes(5);
 
         // Act
         _tokenCache.Set(_testAccessToken, _testResponse, null);
@@ -107,9 +101,7 @@ public class MemoryTokenCacheTests
     /// Verifies that the constructor throws ArgumentNullException when passed a null memory cache.
     /// </summary>
     [Fact]
-    public void Construct_WithNullMemoryCache_ThrowsArgumentNullException()
-    {
+    public void Construct_WithNullMemoryCache_ThrowsArgumentNullException() =>
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new MemoryTokenCache(null!));
-    }
+        _ = Assert.Throws<ArgumentNullException>(() => new MemoryTokenCache(null!));
 }

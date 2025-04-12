@@ -51,7 +51,7 @@ internal class TokenValidator : ITokenValidator {
             return ValidateAccessTokenResponse.Empty;
         }
 
-        var expirationDateTime = DateTime.UtcNow.AddSeconds(tokenInfo.ExpiresIn);
+        DateTime expirationDateTime = DateTime.UtcNow.AddSeconds(tokenInfo.ExpiresIn);
         return new ValidateAccessTokenResponse(expirationDateTime, tokenInfo.Email, tokenInfo.Sub);
     }
 }

@@ -6,6 +6,7 @@ using Moq;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.RateLimit;
+using Polly.Retry;
 using Xunit;
 
 namespace OAuthToolkit.Shared.Tests;
@@ -19,16 +20,16 @@ public class PollyExtensionsTests {
 
     [Fact]
     public async Task GetRetryPolicy_ShouldRetry_OnFailure() {
-        var retryPolicy = PollyExtensions.GetRetryPolicy<HttpResponseMessage>(
+        AsyncRetryPolicy<HttpResponseMessage> retryPolicy = PollyExtensions.GetRetryPolicy<HttpResponseMessage>(
             maxRetryAttempts: 3,
             retryDelays: [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)],
             resultPredicate: r => !r.IsSuccessStatusCode);
 
-        var context = new Context().WithLogger(_mockLogger.Object);
+        Context context = new Context().WithLogger(_mockLogger.Object);
         var httpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError);
-        var attempts = 0;
+        int attempts = 0;
 
-        await retryPolicy.ExecuteAsync(async ctx => {
+        _ = await retryPolicy.ExecuteAsync(async ctx => {
             attempts++;
             return await Task.FromResult(httpResponse);
         }, context);
@@ -46,17 +47,16 @@ public class PollyExtensionsTests {
 
     [Fact]
     public async Task GetRetryPolicy_ShouldNotRetry_OnSuccess() {
-        var retryPolicy = PollyExtensions.GetRetryPolicy<HttpResponseMessage>(
+        Polly.Retry.AsyncRetryPolicy<HttpResponseMessage> retryPolicy = PollyExtensions.GetRetryPolicy<HttpResponseMessage>(
             maxRetryAttempts: 3,
-            retryDelays: [ TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3) ],
+            retryDelays: [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)],
             resultPredicate: r => !r.IsSuccessStatusCode);
 
-        var context = new Context().WithLogger(_mockLogger.Object);
+        Context context = new Context().WithLogger(_mockLogger.Object);
         var httpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
-        var attempts = 0;
+        int attempts = 0;
 
-        await retryPolicy.ExecuteAsync(async ctx =>
-        {
+        _ = await retryPolicy.ExecuteAsync(async ctx => {
             attempts++;
             return await Task.FromResult(httpResponse);
         }, context);
@@ -74,19 +74,17 @@ public class PollyExtensionsTests {
 
     [Fact]
     public async Task GetCircuitBreakerPolicy_ShouldOpenCircuit_OnConsecutiveFailures() {
-        var circuitBreakerPolicy = PollyExtensions.GetCircuitBreakerPolicy<HttpResponseMessage>(
+        AsyncCircuitBreakerPolicy<HttpResponseMessage> circuitBreakerPolicy = PollyExtensions.GetCircuitBreakerPolicy<HttpResponseMessage>(
             maxExceptionsBeforeBreak: 2,
             durationOfBreak: TimeSpan.FromMinutes(1),
             resultPredicate: r => !r.IsSuccessStatusCode);
 
-        var context = new Context().WithLogger(_mockLogger.Object);
+        Context context = new Context().WithLogger(_mockLogger.Object);
         var httpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError);
 
-        await Assert.ThrowsAsync<BrokenCircuitException<HttpResponseMessage>>(async () => {
+        _ = await Assert.ThrowsAsync<BrokenCircuitException<HttpResponseMessage>>(async () => {
             for (int i = 0; i < 3; i++) {
-                await circuitBreakerPolicy.ExecuteAsync(async ctx => {
-                    return await Task.FromResult(httpResponse);
-                }, context);
+                _ = await circuitBreakerPolicy.ExecuteAsync(async ctx => await Task.FromResult(httpResponse), context);
             }
         });
 
@@ -102,19 +100,16 @@ public class PollyExtensionsTests {
 
     [Fact]
     public async Task GetCircuitBreakerPolicy_ShouldNotOpenCircuit_OnSuccess() {
-        var circuitBreakerPolicy = PollyExtensions.GetCircuitBreakerPolicy<HttpResponseMessage>(
+        AsyncCircuitBreakerPolicy<HttpResponseMessage> circuitBreakerPolicy = PollyExtensions.GetCircuitBreakerPolicy<HttpResponseMessage>(
             maxExceptionsBeforeBreak: 2,
             durationOfBreak: TimeSpan.FromMinutes(1),
             resultPredicate: r => !r.IsSuccessStatusCode);
 
-        var context = new Context().WithLogger(_mockLogger.Object);
+        Context context = new Context().WithLogger(_mockLogger.Object);
         var httpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
 
         for (int i = 0; i < 3; i++) {
-            await circuitBreakerPolicy.ExecuteAsync(async ctx =>
-            {
-                return await Task.FromResult(httpResponse);
-            }, context);
+            using HttpResponseMessage _ = await circuitBreakerPolicy.ExecuteAsync(async ctx => await Task.FromResult(httpResponse), context);
         }
 
         _mockLogger.Verify(
@@ -130,23 +125,27 @@ public class PollyExtensionsTests {
     [Fact]
     public async Task GetRateLimitPolicy_ShouldLimitExecutions() {
         for (int i = 0; i < 1000; i++) {
-            var rateLimitPolicy = PollyExtensions.GetRateLimitPolicy<HttpResponseMessage>(
+            AsyncRateLimitPolicy<HttpResponseMessage> rateLimitPolicy = PollyExtensions.GetRateLimitPolicy<HttpResponseMessage>(
                 numberOfExecutions: 2,
                 perTimeSpan: TimeSpan.FromSeconds(10));
 
-            var context = new Context().WithLogger(_mockLogger.Object);
+            Context context = new Context().WithLogger(_mockLogger.Object);
             var httpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
 
-            await rateLimitPolicy.ExecuteAsync(async ctx => await Task.FromResult(httpResponse), context);
-            await rateLimitPolicy.ExecuteAsync(async ctx => await Task.FromResult(httpResponse), context);
+            _ = await rateLimitPolicy.ExecuteAsync(async ctx => await Task.FromResult(httpResponse), context);
+            _ = await rateLimitPolicy.ExecuteAsync(async ctx => await Task.FromResult(httpResponse), context);
 
-            RateLimitRejectedException exception = await Assert.ThrowsAsync<RateLimitRejectedException>(async () => {
-                await rateLimitPolicy.ExecuteAsync(async ctx => {
-                    return await Task.FromResult(httpResponse);
-                }, context);
-            });
+            RateLimitRejectedException exception = await Assert.ThrowsAsync<RateLimitRejectedException>(async ()
+                => await ExecuteRateLimitedRequest(rateLimitPolicy, context, httpResponse));
 
             Assert.True(exception.RetryAfter > TimeSpan.Zero);
+        }
+
+        // Local helper methods
+
+        static async Task ExecuteRateLimitedRequest(AsyncRateLimitPolicy<HttpResponseMessage> rateLimitPolicy, Context context, HttpResponseMessage httpResponse) {
+            using HttpResponseMessage _ = await rateLimitPolicy.ExecuteAsync(async ctx
+                => await Task.FromResult(httpResponse), context);
         }
     }
 

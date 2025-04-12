@@ -36,7 +36,7 @@ internal class MemoryTokenCache : ITokenCache {
     /// The cached validation response if found; otherwise, null.
     /// </returns>
     public ValidateAccessTokenResponse? Get(string accessToken) {
-        _cache.TryGetValue(accessToken, out ValidateAccessTokenResponse? response);
+        _ = _cache.TryGetValue(accessToken, out ValidateAccessTokenResponse? response);
         return response;
     }
 
@@ -49,6 +49,6 @@ internal class MemoryTokenCache : ITokenCache {
     /// Optional. The time period after which the cached entry should expire.
     /// If null, the default expiration of 5 minutes will be used.
     /// </param>
-    public void Set(string accessToken, ValidateAccessTokenResponse response, TimeSpan? expiration) => 
+    public void Set(string accessToken, ValidateAccessTokenResponse response, TimeSpan? expiration) =>
         _cache.Set(accessToken, response, expiration ?? DefaultExpiration);
 }

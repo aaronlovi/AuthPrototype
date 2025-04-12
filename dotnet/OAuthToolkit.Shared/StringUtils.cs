@@ -12,6 +12,6 @@ public static class StringUtils {
     /// <exception cref="ArgumentNullException">Thrown if the string is null.</exception>
     public static string Truncate(this string value, int threshold) {
         ArgumentNullException.ThrowIfNull(value);
-        return value.Length <= threshold ? value : value.Substring(0, threshold);
+        return value.Length <= threshold ? value : value[..threshold];
     }
 }
