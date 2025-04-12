@@ -4,7 +4,6 @@
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-		<AssemblyName>OAuthToolkit.Tests</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>
