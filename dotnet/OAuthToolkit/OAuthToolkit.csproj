@@ -13,6 +13,7 @@
 
 	<PropertyGroup>
         <InternalsVisibleTo>OAuthToolkit.Tests</InternalsVisibleTo>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     </PropertyGroup>
 
 </Project>
