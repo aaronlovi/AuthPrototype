@@ -13,7 +13,7 @@ internal class MemoryTokenCache : ITokenCache {
     /// <summary>
     /// The default time period for which cached entries will be kept if no specific expiration is provided.
     /// </summary>
-    private static readonly TimeSpan DefaultExpiration = TimeSpan.FromMinutes(5);
+    internal static readonly TimeSpan DefaultExpiration = TimeSpan.FromMinutes(5);
 
     /// <summary>
     /// The underlying memory cache used to store token validation responses.
@@ -37,8 +37,8 @@ internal class MemoryTokenCache : ITokenCache {
     /// The cached validation response if found; otherwise, null.
     /// </returns>
     public ValidateAccessTokenResponse? Get(string accessToken) {
-        _ = _cache.TryGetValue(accessToken, out ValidateAccessTokenResponse? response);
-        return response;
+        bool res = _cache.TryGetValue(accessToken, out ValidateAccessTokenResponse? response);
+        return res ? response : ValidateAccessTokenResponse.Empty;
     }
 
     /// <summary>
@@ -50,6 +50,9 @@ internal class MemoryTokenCache : ITokenCache {
     /// Optional. The time period after which the cached entry should expire.
     /// If null, the default expiration of 5 minutes will be used.
     /// </param>
-    public void Set(string accessToken, ValidateAccessTokenResponse response, TimeSpan? expiration) =>
+    public void Set(string accessToken, ValidateAccessTokenResponse response, TimeSpan? expiration) {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accessToken);
+        ArgumentNullException.ThrowIfNull(response);
         _cache.Set(accessToken, response, expiration ?? DefaultExpiration);
+    }
 }
