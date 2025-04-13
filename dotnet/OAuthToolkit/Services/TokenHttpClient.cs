@@ -13,6 +13,7 @@ namespace OAuthToolkit.Services;
 /// </summary>
 internal class TokenHttpClient : ITokenHttpClient {
     private readonly HttpClient _httpClient;
+    private readonly string _tokenInfoUriBase;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TokenHttpClient"/> class.
@@ -22,6 +23,7 @@ internal class TokenHttpClient : ITokenHttpClient {
     public TokenHttpClient(HttpClient httpClient, IOptions<TokenServiceOptions> options) {
         _httpClient = httpClient;
         _httpClient.Timeout = TimeSpan.FromSeconds(options.Value.HttpClientTimeoutSeconds);
+        _tokenInfoUriBase = options.Value.TokenInfoUriBase;
     }
 
     /// <summary>
@@ -33,5 +35,5 @@ internal class TokenHttpClient : ITokenHttpClient {
     /// The HTTP response from the token info endpoint containing token validation results.
     /// </returns>
     public async Task<HttpResponseMessage> GetTokenInfoAsync(string accessToken, CancellationToken ct) =>
-        await _httpClient.GetAsync($"https://oauth2.googleapis.com/tokeninfo?access_token={accessToken}", ct);
+        await _httpClient.GetAsync($"{_tokenInfoUriBase}?access_token={accessToken}", ct);
 }

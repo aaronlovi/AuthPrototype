@@ -15,6 +15,8 @@ public class TokenServiceOptions {
     /// </summary>
     public const int DefaultMaxConcurrentRequests = 20;
 
+    public const string DefaultTokenInfoUriBase = "https://oauth2.googleapis.com/tokeninfo";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TokenServiceOptions"/> class with default values.
     /// </summary>
@@ -28,12 +30,19 @@ public class TokenServiceOptions {
 
     /// <summary>
     /// Gets or sets the timeout in seconds for HTTP requests to the token validation endpoint.
+    /// Double is ok, we do not need extreme precision here.
     /// </summary>
-    public int HttpClientTimeoutSeconds { get; init; }
+    public double HttpClientTimeoutSeconds { get; init; }
 
     /// <summary>
     /// Gets or sets the maximum number of concurrent requests allowed to the token validation service.
     /// Defaults to 20. This helps control the load on the service and prevents excessive resource usage.
     /// </summary>
     public int MaxConcurrentRequests { get; init; } = DefaultMaxConcurrentRequests;
+
+    /// <summary>
+    /// Gets or sets the URI of the token info endpoint.
+    /// Defaults to Google's OAuth2 token info endpoint.
+    /// </summary>
+    public string TokenInfoUriBase { get; init; } = DefaultTokenInfoUriBase;
 }
