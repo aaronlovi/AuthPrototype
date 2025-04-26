@@ -86,7 +86,7 @@ internal class TokenService : ITokenService {
         _logger.LogInformation("ValidateAccessToken");
 
         ValidateAccessTokenResponse? cachedResponse = _tokenCache.Get(accessToken);
-        if (cachedResponse is not null) {
+        if (cachedResponse is not null && cachedResponse.IsValid) {
             _logger.LogInformation("ValidateAccessToken - found in cache");
             return cachedResponse;
         }

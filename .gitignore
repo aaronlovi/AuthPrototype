@@ -400,3 +400,4 @@ FodyWeavers.xsd
 *.sln.iml
 AuthPrototype/users.txt
 /dotnet/AuthPrototype/users.txt
+dotnet/requirements/*.*
