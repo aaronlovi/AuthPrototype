@@ -5,14 +5,32 @@ using System.Threading.Tasks;
 
 namespace WebSocketToolkit;
 
+/// <summary>
+/// Provides basic WebSocket server functionality, including connection, disconnection, and message handling events.
+/// Intended for use as reusable library code in backend projects.
+/// </summary>
 public class WebSocketServer {
-    // Event for when a new connection is established
+    /// <summary>
+    /// Event triggered when a new WebSocket connection is established.
+    /// </summary>
     public event Func<WebSocket, Task>? OnConnected;
-    // Event for when a connection is closed
+
+    /// <summary>
+    /// Event triggered when a WebSocket connection is closed.
+    /// </summary>
     public event Func<WebSocket, Task>? OnDisconnected;
-    // Event for when a message is received
+
+    /// <summary>
+    /// Event triggered when a message is received from a WebSocket client.
+    /// </summary>
     public event Func<WebSocket, string, Task>? OnMessageReceived;
 
+    /// <summary>
+    /// Handles the WebSocket session lifecycle for a single connection.
+    /// Invokes connection, message, and disconnection events as appropriate.
+    /// </summary>
+    /// <param name="webSocket">The WebSocket connection to handle.</param>
+    /// <param name="ct">Cancellation token for the session.</param>
     public async Task HandleWebSocketAsync(WebSocket webSocket, CancellationToken ct) {
         await (OnConnected?.Invoke(webSocket) ?? Task.CompletedTask);
         byte[] buffer = new byte[4096];
