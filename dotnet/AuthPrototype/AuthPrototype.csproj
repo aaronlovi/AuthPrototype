@@ -12,6 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\OAuthToolkit\OAuthToolkit.csproj" />
+		<ProjectReference Include="..\OAuthToolkit\OAuthToolkit.csproj" />
+		<ProjectReference Include="..\WebSocketToolkit\WebSocketToolkit.csproj" />
 	</ItemGroup>
 </Project>
