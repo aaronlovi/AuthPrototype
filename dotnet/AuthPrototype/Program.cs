@@ -75,15 +75,15 @@ public class Program {
             using WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
             var wsServer = new WebSocketServer();
             wsServer.OnConnected += async (ws) => {
-                app.Logger.LogInformation("WebSocket connected: {RemoteIpAddress}", context.Connection.RemoteIpAddress);
+                Log.Logger.Information("WebSocket connected: {RemoteIpAddress}", context.Connection.RemoteIpAddress);
                 await Task.CompletedTask;
             };
             wsServer.OnDisconnected += async (ws) => {
-                app.Logger.LogInformation("WebSocket disconnected: {RemoteIpAddress}", context.Connection.RemoteIpAddress);
+                Log.Logger.Information("WebSocket disconnected: {RemoteIpAddress}", context.Connection.RemoteIpAddress);
                 await Task.CompletedTask;
             };
             wsServer.OnMessageReceived += async (ws, msg) => {
-                app.Logger.LogInformation("WebSocket message received: {Msg}", msg);
+                Log.Logger.Information("WebSocket message received: {Msg}", msg);
                 // Echo message back
                 byte[] buffer = Encoding.UTF8.GetBytes($"Echo: {msg}");
                 await ws.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
